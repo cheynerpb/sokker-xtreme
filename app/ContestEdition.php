@@ -26,7 +26,7 @@ class ContestEdition extends Model
     {
         $query = "SELECT MAX(players.score) as max_score, players.player_name
     			  FROM players
-                  WHERE players.contest_id = '{$this->id}'
+                  WHERE players.contest_id = '{$this->id}' AND active = 1
     			  GROUP BY players.player_name
     			  ORDER BY max_score DESC LIMIT 1";
 

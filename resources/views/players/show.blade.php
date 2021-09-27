@@ -28,7 +28,7 @@
                             {{$message_id}}
                         </div>
                     @endif
-                 
+
                    <!-- Contenido Aqui -->
                      <div class="row">
                         <div class="col-md-12">
@@ -66,7 +66,7 @@
                             {{$message}}
                         </div>
                     @endif
-                 
+
                    <!-- Contenido Aqui -->
                      <div class="row">
                         <div class="col-md-12">

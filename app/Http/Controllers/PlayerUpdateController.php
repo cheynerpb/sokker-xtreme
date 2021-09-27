@@ -82,120 +82,19 @@ class PlayerUpdateController extends Controller
     public function store_by_id(Request $request)
     {
         try {
+
+            $active_edition = ContestEdition::where('active', true)->first();
+
             $client = new Client();
 
             $response = $client->request('GET', 'https://sokker.org/player/PID/' . $request->player_id);
+
 
             $domDoc = new \DOMDocument();
 
             $html = (string)$response->getBody();
 
-            $domHtml = @$domDoc->loadHTML($html);
-
-            $xpath = new \DOMXPath($domDoc);
-
-            $results = $xpath->query("//*[@class='skillNameNumber']");
-
-            if ($results->length > 2) {
-
-                $new_player_info = new Player();
-
-                $array = ['[', ']'];
-
-                $new_player_info->contest_id = ContestEdition::where('active', true)->first()->id;
-                $new_player_info->sk_player_id = $request->player_id;
-                $new_player_info->stamina     = str_replace($array, '', $results[2]->nodeValue);
-                $new_player_info->keeper      = str_replace($array, '', $results[3]->nodeValue);
-                $new_player_info->pace         = str_replace($array, '', $results[4]->nodeValue);
-                $new_player_info->defender     = str_replace($array, '', $results[5]->nodeValue);
-                $new_player_info->technique = str_replace($array, '', $results[6]->nodeValue);
-                $new_player_info->playmaker = str_replace($array, '', $results[7]->nodeValue);
-                $new_player_info->passing     = str_replace($array, '', $results[8]->nodeValue);
-                $new_player_info->striker     = str_replace($array, '', $results[9]->nodeValue);
-
-                $classname = "panel-heading";
-                $results = $xpath->query("//*[contains(@class, '$classname')]");
-
-                //Name
-                $a_tags = $results[0]->getElementsByTagName('a');
-                $new_player_info->player_name = trim($a_tags[0]->textContent);
-
-                //Age
-                $age_tag = $results[0]->getElementsByTagName('strong');
-                $new_player_info->player_age = (int)$age_tag[0]->textContent;
-
-                //Team and country_id
-                $classname = "list-unstyled list-underline";
-                $results = $xpath->query("//*[contains(@class, '$classname')]");
-
-                $a_tags = $results[0]->getElementsByTagName('a');
-                $new_player_info->team = $a_tags[0]->textContent;
-                $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
-
-                $existing_record = Player::where([
-                    'contest_id' => $new_player_info->contest_id,
-                    'sk_player_id' => $new_player_info->sk_player_id,
-                    'player_name' => $new_player_info->player_name,
-                    'player_age' => $new_player_info->player_age,
-                    'team' => $new_player_info->team,
-                    'stamina' => $new_player_info->stamina,
-                    'keeper' => $new_player_info->keeper,
-                    'pace' => $new_player_info->pace,
-                    'defender' => $new_player_info->defender,
-                    'technique' => $new_player_info->technique,
-                    'playmaker' => $new_player_info->playmaker,
-                    'passing' => $new_player_info->passing,
-                    'striker' => $new_player_info->striker,
-                    'country_id' => $new_player_info->country_id
-                ])->first();
-
-                if ($existing_record) {
-                    return view('players.show')->with(array(
-                        'message_id' => 'Ya existen estos datos para este jugador',
-                        'error' => true
-                    ));
-                }
-
-                $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
-                    ->orderBy('created_at', 'desc')->first();
-
-                if (isset($last_player_record)) {
-                    $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
-                }
-                $new_player_info->save();
-
-                return view('players.show')->with(array(
-                    'message_id' => 'Datos del jugador ' . $new_player_info->player_name . ' insertados correctamente'
-                ));
-            } else {
-                return view('players.show')->with(array(
-                    'message_id' => 'El jugador no está en anuncio de transferencia',
-                    'error' => true
-                ));
-            }
-        } catch (Exception $e) {
-            return view('players.show')->with(array(
-                'message_id' => 'Error ' . $e->getMessage()
-            ));
-        }
-    }
-
-    public function update_all(Request $request)
-    {
-        try {
-
-            $query = 'SELECT DISTINCT sk_player_id FROM players';
-            $result = DB::select($query);
-
-            $client = new Client();
-            $count = 0;
-            foreach ($result as $key => $value) {
-
-                $response = $client->request('GET', 'https://sokker.org/player/PID/' . $value->sk_player_id);
-
-                $domDoc = new \DOMDocument();
-
-                $html = (string)$response->getBody();
+            if (strlen($html) > 0) {
 
                 $domHtml = @$domDoc->loadHTML($html);
 
@@ -210,7 +109,7 @@ class PlayerUpdateController extends Controller
                     $array = ['[', ']'];
 
                     $new_player_info->contest_id = ContestEdition::where('active', true)->first()->id;
-                    $new_player_info->sk_player_id = $value->sk_player_id;
+                    $new_player_info->sk_player_id = $request->player_id;
                     $new_player_info->stamina     = str_replace($array, '', $results[2]->nodeValue);
                     $new_player_info->keeper      = str_replace($array, '', $results[3]->nodeValue);
                     $new_player_info->pace         = str_replace($array, '', $results[4]->nodeValue);
@@ -256,20 +155,143 @@ class PlayerUpdateController extends Controller
                         'country_id' => $new_player_info->country_id
                     ])->first();
 
-                    if (!$existing_record) {
-                        $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
-                            ->orderBy('created_at', 'desc')->first();
-
-                        if (isset($last_player_record)) {
-                            $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
-                        }
-                        $new_player_info->save();
-                        $count++;
+                    if ($existing_record) {
+                        return view('players.show')->with(array(
+                            'message_id' => 'Ya existen estos datos para este jugador',
+                            'error' => true
+                        ));
                     }
+
+                    $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
+                        ->where('contest_id', $active_edition->id)
+                        ->orderBy('created_at', 'desc')->first();
+
+                    if (isset($last_player_record)) {
+                        $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
+                    }
+                    $new_player_info->save();
+
+                    return view('players.show')->with(array(
+                        'message_id' => 'Datos del jugador ' . $new_player_info->player_name . ' insertados correctamente'
+                    ));
+                } else {
+                    return view('players.show')->with(array(
+                        'message_id' => 'El jugador no está en anuncio de transferencia',
+                        'error' => true
+                    ));
                 }
             }
             return view('players.show')->with(array(
-                'message_id' => 'Actualizados ' . $count . ' jugadores'
+                'message_id' => 'No existe el jugador',
+                'error' => true
+            ));
+        } catch (Exception $e) {
+            return view('players.show')->with(array(
+                'message_id' => 'Error ' . $e->getMessage()
+            ));
+        }
+    }
+
+    public function update_all(Request $request)
+    {
+        try {
+
+            $active_edition = ContestEdition::where('active', true)->first();
+
+            $query = "SELECT DISTINCT sk_player_id FROM players where contest_id = '{$active_edition->id}' AND active = 1";
+
+            $result = DB::select($query);
+
+            if (count($result) > 0) {
+
+                $client = new Client();
+                $count = 0;
+                foreach ($result as $key => $value) {
+
+                    $response = $client->request('GET', 'https://sokker.org/player/PID/' . $value->sk_player_id);
+
+                    $domDoc = new \DOMDocument();
+
+                    $html = (string)$response->getBody();
+
+                    $domHtml = @$domDoc->loadHTML($html);
+
+                    $xpath = new \DOMXPath($domDoc);
+
+                    $results = $xpath->query("//*[@class='skillNameNumber']");
+
+                    if ($results->length > 2) {
+
+                        $new_player_info = new Player();
+
+                        $array = ['[', ']'];
+
+                        $new_player_info->contest_id = $active_edition->id;
+                        $new_player_info->sk_player_id = $value->sk_player_id;
+                        $new_player_info->stamina     = str_replace($array, '', $results[2]->nodeValue);
+                        $new_player_info->keeper      = str_replace($array, '', $results[3]->nodeValue);
+                        $new_player_info->pace         = str_replace($array, '', $results[4]->nodeValue);
+                        $new_player_info->defender     = str_replace($array, '', $results[5]->nodeValue);
+                        $new_player_info->technique = str_replace($array, '', $results[6]->nodeValue);
+                        $new_player_info->playmaker = str_replace($array, '', $results[7]->nodeValue);
+                        $new_player_info->passing     = str_replace($array, '', $results[8]->nodeValue);
+                        $new_player_info->striker     = str_replace($array, '', $results[9]->nodeValue);
+
+                        $classname = "panel-heading";
+                        $results = $xpath->query("//*[contains(@class, '$classname')]");
+
+                        //Name
+                        $a_tags = $results[0]->getElementsByTagName('a');
+                        $new_player_info->player_name = trim($a_tags[0]->textContent);
+
+                        //Age
+                        $age_tag = $results[0]->getElementsByTagName('strong');
+                        $new_player_info->player_age = (int)$age_tag[0]->textContent;
+
+                        //Team and country_id
+                        $classname = "list-unstyled list-underline";
+                        $results = $xpath->query("//*[contains(@class, '$classname')]");
+
+                        $a_tags = $results[0]->getElementsByTagName('a');
+                        $new_player_info->team = $a_tags[0]->textContent;
+                        $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
+
+                        $existing_record = Player::where([
+                            'contest_id' => $new_player_info->contest_id,
+                            'sk_player_id' => $new_player_info->sk_player_id,
+                            'player_name' => $new_player_info->player_name,
+                            'player_age' => $new_player_info->player_age,
+                            'team' => $new_player_info->team,
+                            'stamina' => $new_player_info->stamina,
+                            'keeper' => $new_player_info->keeper,
+                            'pace' => $new_player_info->pace,
+                            'defender' => $new_player_info->defender,
+                            'technique' => $new_player_info->technique,
+                            'playmaker' => $new_player_info->playmaker,
+                            'passing' => $new_player_info->passing,
+                            'striker' => $new_player_info->striker,
+                            'country_id' => $new_player_info->country_id
+                        ])->first();
+
+                        if (!$existing_record) {
+                            $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
+                                ->where('contest_id', $active_edition->id)
+                                ->orderBy('created_at', 'desc')->first();
+
+                            if (isset($last_player_record)) {
+                                $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
+                            }
+                            $new_player_info->save();
+                            $count++;
+                        }
+                    }
+                }
+                return view('players.show')->with(array(
+                    'message_id' => 'Actualizados ' . $count . ' jugadores'
+                ));
+            }
+            return view('players.show')->with(array(
+                'message_id' => 'No hay jugadores registrados en la Edición ' . $active_edition->name
             ));
         } catch (Exception $e) {
             dd($e);
@@ -580,16 +602,27 @@ class PlayerUpdateController extends Controller
         $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
     			  players.sk_player_id, players.player_age
     			  FROM players
-                  WHERE players.contest_id = {$contest_id}
+                  WHERE players.contest_id = {$contest_id} AND players.active = 1
     			  GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
     			  ORDER BY max_score DESC";
 
 
         $view_data['data'] = collect(DB::select($query));
 
+        //Inactive
+        $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
+    			  players.sk_player_id, players.player_age
+    			  FROM players
+                  WHERE players.contest_id = {$contest_id} AND players.active = 0
+    			  GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
+    			  ORDER BY max_score DESC";
+
+
+        $view_data['inactive_data'] = collect(DB::select($query));
+
         $query = "SELECT MAX(players.score) as max_score, players.sk_player_id
     			  FROM players
-                  WHERE players.contest_id = {$contest_id}
+                  WHERE players.contest_id = {$contest_id} AND players.active = 1
     			  GROUP BY players.sk_player_id
     			  ORDER BY max_score DESC LIMIT 5";
 
@@ -598,6 +631,7 @@ class PlayerUpdateController extends Controller
         $first_five = collect();
         foreach ($elements as $key => $item) {
             $element = Player::where('sk_player_id', $item->sk_player_id)
+                ->where('contest_id', $contest_id)
                 ->orderBy('created_at', 'desc')->get();
 
             if ($element->count() != 0) {
@@ -650,7 +684,10 @@ class PlayerUpdateController extends Controller
             ->where('contest_id', $contest_id)
             ->orderBy('created_at', 'asc')
             ->get();
-        return view('players.player_details', compact('view_data'));
+        return view('players.player_details', compact('view_data'))->with(array(
+            'message_id' => session('message_id'),
+            'error' => session('error'),
+        ));
     }
 
     public function reference_table()
@@ -672,6 +709,30 @@ class PlayerUpdateController extends Controller
         } catch (Exception $e) {
             return redirect()->back()->with(array(
                 'message' => 'Hubo un error al eliminar los datos'
+            ));
+        }
+    }
+
+    public function change_active(Request $request, $sk_id)
+    {
+        try {
+            $contest_id = ContestEdition::where('active', true)->first()->id;
+            $player_name = Player::where('sk_player_id', $sk_id)->first();
+
+            Player::where('sk_player_id', $sk_id)
+                  ->where('contest_id', $contest_id)
+                  ->update(['active' => !$request->active]);
+
+            $status = $request->active == 1 ? 'inactivado' : 'activado';
+
+            return redirect()->route('show_player', $player_name->sk_player_id)->with(array(
+                'message_id' => 'El jugador ' . $player_name->player_name . ' fue '.$status,
+                'error' => false
+            ));
+        } catch (\Exception $e) {
+            return redirect()->back()->with(array(
+                'message_id' => 'Hubo un error cambiar el estado del jugador',
+                'error' => true
             ));
         }
     }

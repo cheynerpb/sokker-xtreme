@@ -1,6 +1,6 @@
-<div id="ranking_five" class="{{ $view_data['active_tab'] === "ranking_five" ? "active":"fade" }} tab-pane box-border">
+<div id="inactive" class="{{ $view_data['active_tab'] === "inactive" ? "active":"fade" }} tab-pane box-border">
     <div class="row">
-      <table class="table table-hover table-sm" id="ranking_all" style="font-size: 24px;">
+      <table class="table table-hover table-sm" id="inactive" style="font-size: 24px;">
           <thead class="thead-dark">
             <tr >
               <th scope="col">No.</th>
@@ -12,23 +12,8 @@
           </thead>
           <tbody>
 
-            @foreach($view_data['data'] as $key => $data)
-                @php
-                    $class = '';
-                    switch ($key) {
-                        case 0:
-                            $class = 'table-success';
-                            break;
-                        case 1:
-                            $class = 'table-primary';
-                            break;
-                        case 2:
-                            $class = 'table-danger';
-                            break;
-                    }
-
-                @endphp
-                <tr class="{{$class}}">
+            @foreach($view_data['inactive_data'] as $key => $data)
+                <tr>
                   <th scope="row">{{ $key + 1 }}</th>
                   <td>
                     <a href="{{route( 'show_player', ['sokker_id'=> $data->sk_player_id])}}">

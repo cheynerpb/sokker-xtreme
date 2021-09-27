@@ -49,9 +49,19 @@
                                     Detalles
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="#inactive"
+                                  data-tab="inactive"
+                                   class="nav-link has-no-table {{ $view_data['active_tab'] == "inactive" ? "active":"" }}"
+                                   data-toggle="tab"
+                                >
+                                    Inactivos
+                                </a>
+                            </li>
                         </ul>
                         @include('ranking.tabs.ranking_five')
                         @include('ranking.tabs.five_details')
+                        @include('ranking.tabs.inactive')
                     </div>
                 </div>
                 <div class="card-footer text-muted">
@@ -83,12 +93,14 @@
             if(tab == 'ranking_five') {
                 $('#top_five').prop('disabled', true);
                 $('#general_table').prop('disabled', false);
-            } else {
+            } else if(tab == 'five_details'){
                 $('#top_five').prop('disabled', false);
+                $('#general_table').prop('disabled', true);
+            } else {
+                $('#top_five').prop('disabled', true);
                 $('#general_table').prop('disabled', true);
             }
         })
-
 
         /*$('#save_table').on('click', function(){
             html2canvas(document.querySelector('#five_details')).then(function(canvas) {

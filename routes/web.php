@@ -36,6 +36,8 @@ Route::get('/show-player/{sokker_id}', 'PlayerUpdateController@show_player')->na
 Route::get('/reference-table', 'PlayerUpdateController@reference_table')->name('reference_table');
 Route::delete('/delete-all/{sokker_id}', 'PlayerUpdateController@delete_all')->name('delete_all');
 
+Route::post('/change-active/{sokker_id}', 'PlayerUpdateController@change_active')->name('change_active');
+
 Route::get('/form', 'DownloadController@show_form')->name('show_form');
 Route::post('/download-data', 'DownloadController@download_data')->name('download_data');
 

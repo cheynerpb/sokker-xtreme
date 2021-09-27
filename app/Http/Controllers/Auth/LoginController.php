@@ -45,9 +45,9 @@ class LoginController extends Controller
     public function sokker_login(Request $request)
     {
         $validator = \Validator::make(request()->all(), [
-                        'name' => 'required',
-                        'password' => 'required'
-                    ]);
+            'name' => 'required',
+            'password' => 'required'
+        ]);
 
 
         $client = new Client([
@@ -63,37 +63,37 @@ class LoginController extends Controller
 
         $splitted_response = explode(' ', $response->getBody()->getContents());
 
-        if(strlen($splitted_response[0]) > 2){
+        if (strlen($splitted_response[0]) > 2) {
             $error = explode('=', $splitted_response[1]);
             switch ($error[1]) {
                 case '1':
                     $message = 'La contraseña es incorrecta';
-                    $validator->after(function($validator) use ($message){
-                       $validator->errors()->add('password', $message);
+                    $validator->after(function ($validator) use ($message) {
+                        $validator->errors()->add('password', $message);
                     });
                     break;
                 case '3':
                     $message = 'El usuario no tiene ningún equipo';
-                    $validator->after(function($validator) use ($message){
-                       $validator->errors()->add('name', $message);
+                    $validator->after(function ($validator) use ($message) {
+                        $validator->errors()->add('name', $message);
                     });
                     break;
                 case '4':
                     $message = 'El usuario fue baneado';
-                    $validator->after(function($validator) use ($message){
-                       $validator->errors()->add('name', $message);
+                    $validator->after(function ($validator) use ($message) {
+                        $validator->errors()->add('name', $message);
                     });
                     break;
                 case '5':
                     $message = 'El equipo está en bancarrota';
-                    $validator->after(function($validator) use ($message){
-                       $validator->errors()->add('name', $message);
+                    $validator->after(function ($validator) use ($message) {
+                        $validator->errors()->add('name', $message);
                     });
                     break;
                 case '6':
                     $message = 'El IP está en lista negra';
-                    $validator->after(function($validator) use ($message){
-                       $validator->errors()->add('name', $message);
+                    $validator->after(function ($validator) use ($message) {
+                        $validator->errors()->add('name', $message);
                     });
                     break;
             }
@@ -101,36 +101,38 @@ class LoginController extends Controller
 
         if ($validator->fails()) {
             return redirect()
-                    ->back()
-                    ->withInput()
-                    ->withErrors( $validator->errors() );
+                ->back()
+                ->withInput()
+                ->withErrors($validator->errors());
         }
+
 
         $team_id = explode('=', $splitted_response[1])[1];
 
-        $response = $client->request('GET', 'https://sokker.org/xml/team-'.$team_id.'.xml');
-    
+        $response = $client->request('GET', 'https://sokker.org/xml/team-' . $team_id . '.xml');
+
         $data = $this->loadXmlStringAsArray($response->getBody()->getContents());
-        
+
         $user_info = $data['user'];
         $team_info = $data['team'];
-        
+
         $user = User::find((int)$user_info['userID']);
-       
-        if(!$user){
+
+        if (!$user) {
 
             $country = Country::find($team_info['countryID']);
 
             $team = Team::firstOrCreate(
                 [
                     'id' => $team_info['teamID']
-                ],[
+                ],
+                [
                     'team_name' => $team_info['name'],
                     'country_id' => $team_info['countryID'],
                     'region_id' => $team_info['regionID'],
                     'foundation_date' => $team_info['dateCreated'],
                     'rank' => $team_info['rank'],
-                    'stadium_name' => $team_info['arenaName'], 
+                    'stadium_name' => $team_info['arenaName'],
                     'money' => $country->getCurrentMoney($team_info['money']),
                     'fanclubCount' => $team_info['fanclubCount'],
                     'fanclubMood' => $team_info['fanclubMood'],
@@ -139,26 +141,26 @@ class LoginController extends Controller
             );
 
             $user = User::create([
-                        'id' => (int)$user_info['userID'],
-                        'team_id' => $team->id,
-                        'name' => $user_info['login'],
-                        'password' => bcrypt($request->password)
-                    ]);
+                'id' => (int)$user_info['userID'],
+                'team_id' => $team->id,
+                'name' => $user_info['login'],
+                'password' => bcrypt($request->password)
+            ]);
         }
 
         if (\Auth::attempt(['name' => $user->name, 'password' => $request->password])) {
             return  redirect()->route('home');
         } else {
-            return redirect( '/' );
+            return redirect('/');
         }
     }
 
     public function loadXmlStringAsArray($xmlString)
     {
         $array = (array) @simplexml_load_string($xmlString);
-        if(!$array){
+        if (!$array) {
             $array = (array) @json_decode($xmlString, true);
-        } else{
+        } else {
             $array = (array)@json_decode(json_encode($array), true);
         }
         return $array;

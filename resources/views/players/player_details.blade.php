@@ -11,8 +11,20 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
+            @if(isset($message_id))
+                <div class="alert alert-{{(isset($error) && $error == true) ? 'danger' : 'success' }}">
+                    {{$message_id}}
+                </div>
+            @endif
             <div class="card">
-                <div class="card-header">Progreso del jugador {{$view_data['data'][0]->player_name}} 
+                <div class="card-header">
+                    Progreso del jugador {{$view_data['data'][0]->player_name}}
+                    @if ($view_data['data'][0]->active)
+                        <span class="badge badge-success">Activo</span>
+                    @else
+                        <span class="badge badge-danger">Inactivo</span>
+                    @endif
+
                     <div class="float-right">
                         {!! Form::open(['method' => 'DELETE','id'=>'form-delete','route' => ['delete_all', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de eliminar?')"]) !!}
 
@@ -21,6 +33,18 @@
                             </button>
                        {!! Form::close() !!}
                         <!-- <a class="btn btn-danger" href="{{route('delete_all', ['sokker_id' => $view_data['data'][0]->sk_player_id])}}">Eliminar jugador</a> -->
+                    </div>
+                    <div class="float-right  mr-5">
+                        {!! Form::open(['method' => 'POST','id'=>'form-change','route' => ['change_active', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de cambiar el estado del jugador dentro del concurso?')"]) !!}
+                            {!! Form::hidden('active', $view_data['data'][0]->active) !!}
+                            <button type="submit" class="btn btn-primary btn-sm position-relative">
+                                @if ($view_data['data'][0]->active)
+                                    Inactivar
+                                @else
+                                    Activar
+                                @endif
+                            </button>
+                        {!! Form::close() !!}
                     </div>
                 </div>
 
@@ -31,7 +55,7 @@
                             {{$message}}
                         </div>
                     @endif
-                 
+
                    <!-- Contenido Aqui -->
                    <table class="table table-hover table-sm text-center" id="ranking_all">
                       <thead class="thead-dark">
@@ -51,7 +75,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        
+
                         @foreach($view_data['data'] as $key => $data)
                             <tr>
                               <td>{{ $data->player_age }}</td>
@@ -70,7 +94,7 @@
                                         <button type="submit" class="btn btn-danger btn-sm position-relative">
                                             Eliminar
                                         </button>
-                                {!! Form::close() !!}   
+                                {!! Form::close() !!}
                               </td>
                             </tr>
                         @endforeach
@@ -80,7 +104,7 @@
                 <div class="card-footer text-muted">
                     <div class="row">
                         <div class="col-md-6">
-                           
+
                         </div>
                     </div>
                 </div>

@@ -17,13 +17,13 @@
                 {{ Form::open( ['id' => 'insert_Data', 'class' => 'form', 'route' => 'download_data'] ) }}
 
                 <div class="card-body">
-                    
+
                     @if(isset($message))
                         <div class="alert alert-{{$class}}">
                             {{$message}}
                         </div>
                     @endif
-                 
+
                    <!-- Contenido Aqui -->
                      <div class="row">
                         <div class="col-md-6">
@@ -64,7 +64,7 @@
 </div>
 <script>
     $(document).ready(function(){
-        
+
         /*$('#save').on('click', function(){
             $.ajaxSetup({
                     headers: {

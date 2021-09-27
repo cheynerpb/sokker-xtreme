@@ -3,8 +3,8 @@
 
           <fieldset>
             <div class="row">
-              <div class="col-10 offset-1">
-                <table class="table table-hover table-sm">
+              <div class="col-12">
+                <table class="table table-hover table-sm" style="font-size: 24px;">
                   <thead class="thead-dark">
                     <tr class="ml-3">
                         <th scope="col" style="max-width: 3.5vw;" class="text-center" colspan="4">
@@ -31,7 +31,7 @@
                         </strong>
                       </td>
                       <td style="max-width: 3.5vw;" colspan="2">portería</td>
-                      <td rowspan="4" style="vertical-align : middle;text-align:center;"><h3>{{$item->score}}</h3></td>
+                      <td rowspan="4" style="vertical-align : middle;text-align:center;"><h3>{{number_format($item->score, 1)}}</h3></td>
                     </tr>
                     <tr>
                       <td style="max-width: 3.5vw;">{{\Abilities::getAbility($item->pace)}}</td>
