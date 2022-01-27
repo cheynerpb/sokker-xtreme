@@ -24,7 +24,9 @@ class Player extends Model
         'playmaker',
         'striker',
         'score',
-        'active'
+        'active',
+        'created_at',
+        'updated_at'
     ];
 
     public function Country()

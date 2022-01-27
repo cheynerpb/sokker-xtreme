@@ -198,7 +198,7 @@ class PlayerUpdateController extends Controller
 
             $active_edition = ContestEdition::where('active', true)->first();
 
-            $query = "SELECT DISTINCT sk_player_id FROM players where contest_id = '{$active_edition->id}' AND active = 1";
+            $query = "SELECT DISTINCT sk_player_id FROM players where contest_id = '{$active_edition->id}' AND active = true";
 
             $result = DB::select($query);
 
@@ -602,7 +602,7 @@ class PlayerUpdateController extends Controller
         $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
     			  players.sk_player_id, players.player_age
     			  FROM players
-                  WHERE players.contest_id = {$contest_id} AND players.active = 1
+                  WHERE players.contest_id = {$contest_id} AND players.active = true
     			  GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
     			  ORDER BY max_score DESC";
 
@@ -613,7 +613,7 @@ class PlayerUpdateController extends Controller
         $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
     			  players.sk_player_id, players.player_age
     			  FROM players
-                  WHERE players.contest_id = {$contest_id} AND players.active = 0
+                  WHERE players.contest_id = {$contest_id} AND players.active = false
     			  GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
     			  ORDER BY max_score DESC";
 
@@ -622,7 +622,7 @@ class PlayerUpdateController extends Controller
 
         $query = "SELECT MAX(players.score) as max_score, players.sk_player_id
     			  FROM players
-                  WHERE players.contest_id = {$contest_id} AND players.active = 1
+                  WHERE players.contest_id = {$contest_id} AND players.active = true
     			  GROUP BY players.sk_player_id
     			  ORDER BY max_score DESC LIMIT 5";
 

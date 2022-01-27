@@ -11,8 +11,11 @@ class ContestEdition extends Model
     protected $table = "contest_edition";
 
     protected $fillable = [
+        'id',
         'name',
-        'active'
+        'active',
+        'created_at',
+        'updated_at'
     ];
 
     protected $appends = ['winner'];
@@ -26,7 +29,7 @@ class ContestEdition extends Model
     {
         $query = "SELECT MAX(players.score) as max_score, players.player_name
     			  FROM players
-                  WHERE players.contest_id = '{$this->id}' AND active = 1
+                  WHERE players.contest_id = '{$this->id}' AND active = true
     			  GROUP BY players.player_name
     			  ORDER BY max_score DESC LIMIT 1";
 
