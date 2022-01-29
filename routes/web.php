@@ -19,6 +19,18 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::group(['as' => 'system.', 'prefix' => 'system'], function () {
+    Route::get('login', 'Auth\SystemUserAuthController@showLoginForm')->name('login.form');
+
+    Route::post('login', 'Auth\SystemUserAuthController@login')->name('login.post');
+
+    Route::get('logout', 'Auth\SystemUserAuthController@logout')->name('logout');
+
+    Route::get('register', 'Auth\SystemUserAuthController@showRegistrationForm')->name('register.form');
+
+    Route::post('register', 'Auth\SystemUserAuthController@register')->name('register.save');
+});
+
 Route::post('/sokker-login', 'Auth\LoginController@sokker_login')->name('sokker_login');
 
 Route::get('/home', 'HomeController@index')->name('home');
@@ -37,6 +49,7 @@ Route::get('/reference-table', 'PlayerUpdateController@reference_table')->name('
 Route::delete('/delete-all/{sokker_id}', 'PlayerUpdateController@delete_all')->name('delete_all');
 
 Route::post('/change-active/{sokker_id}', 'PlayerUpdateController@change_active')->name('change_active');
+Route::post('/active-user/{id}', 'SystemUserController@active_user')->name('active_user');
 
 Route::get('/form', 'DownloadController@show_form')->name('show_form');
 Route::post('/download-data', 'DownloadController@download_data')->name('download_data');
@@ -44,3 +57,4 @@ Route::post('/download-data', 'DownloadController@download_data')->name('downloa
 Route::post('/download-players', 'DownloadController@download_players')->name('download_players');
 
 Route::resource('editions', 'EditionController');
+Route::resource('system_users', 'SystemUserController');

@@ -67,16 +67,16 @@
     <body>
         <div class="flex-center position-ref full-height">
 
-            @if (Route::has('login'))
+            @if (Route::has('system.login.form'))
                 <div class="top-right links">
-                    
+
                     @auth
                         <a href="{{ url('/home') }}">Home</a>
                     @else
-                        <a href="{{ route('login') }}">Login</a>
+                        <a href="{{ route('system.login.form') }}">Login</a>
 
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
+                        @if (Route::has('system.register.form'))
+                            <a href="{{ route('system.register.form') }}">Register</a>
                         @endif
                     @endauth
                 </div>
@@ -91,9 +91,13 @@
                 </div>
 
                 <div class="links">
-                    <a href="{{route('insert_player')}}">Insertar</a>
+
                     <a href="{{route('show_ranking')}}">Tabla</a>
-                    <a href="{{route('show_form')}}">Actualizar</a>
+                    @if (\Auth::guard('system_users')->check())
+                        <a href="{{route('insert_player')}}">Insertar</a>
+                        <a href="{{route('show_form')}}">Actualizar</a>
+                    @endif
+
                 </div>
             </div>
         </div>

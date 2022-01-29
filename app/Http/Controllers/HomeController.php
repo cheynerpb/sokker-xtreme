@@ -26,7 +26,7 @@ class HomeController extends Controller
     {
         $view_data['user'] = User::find(auth()->user()->id);
         $view_data['players'] = $view_data['user']->team->players;
-        
+
         return view('home', compact('view_data'));
     }
 }

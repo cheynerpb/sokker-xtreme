@@ -76,7 +76,12 @@ class PlayerUpdateController extends Controller
 
     public function show_insert()
     {
-        return view('players.show');
+        if(\Auth::guard('system_users')->check()){
+            return view('players.show');
+        } else {
+            return redirect()->back();
+        }
+
     }
 
     public function store_by_id(Request $request)

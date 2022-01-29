@@ -44,43 +44,50 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
-                    @guest
+
                     <ul class="navbar-nav mr-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('insert_player') }}">Insertar</a>
-                        </li>
+                        @if (\Auth::guard('system_users')->check())
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('insert_player') }}">Insertar</a>
+                            </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('show_ranking') }}">Ranking</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('editions.index') }}">Ediciones</a>
-                        </li>
+                        @if (\Auth::guard('system_users')->check())
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('editions.index') }}">Ediciones</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('system_users.index') }}">Usuarios</a>
+                            </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('reference_table') }}">Tabla Referencial</a>
                         </li>
                     </ul>
-                    @endguest
+
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ml-auto">
                         <!-- Authentication Links -->
-                        @guest
+                        @if (!\Auth::guard('system_users')->check())
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                <a class="nav-link" href="{{ route('system.login.form') }}">{{ __('Login') }}</a>
                             </li>
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link" href="{{ route('system.register.form') }}">{{ __('Register') }}</a>
                                 </li>
                             @endif
                         @else
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                                    {{ Auth::guard('system_users')->user()->name }}
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                    <a class="dropdown-item" href="{{ route('system.logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
@@ -91,7 +98,7 @@
                                     </form>
                                 </div>
                             </li>
-                        @endguest
+                        @endif
                     </ul>
                 </div>
             </div>
@@ -104,6 +111,7 @@
         <main class="py-4">
             @yield('content')
         </main>
+        @stack('scripts')
     </div>
 
 </body>

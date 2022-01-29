@@ -24,28 +24,30 @@
                     @else
                         <span class="badge badge-danger">Inactivo</span>
                     @endif
+                    @if (\Auth::guard('system_users')->check())
+                        <div class="float-right">
+                            {!! Form::open(['method' => 'DELETE','id'=>'form-delete','route' => ['delete_all', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de eliminar?')"]) !!}
 
-                    <div class="float-right">
-                        {!! Form::open(['method' => 'DELETE','id'=>'form-delete','route' => ['delete_all', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de eliminar?')"]) !!}
-
-                            <button type="submit" class="btn btn-danger btn-sm position-relative">
-                                Eliminar jugador
-                            </button>
-                       {!! Form::close() !!}
-                        <!-- <a class="btn btn-danger" href="{{route('delete_all', ['sokker_id' => $view_data['data'][0]->sk_player_id])}}">Eliminar jugador</a> -->
-                    </div>
-                    <div class="float-right  mr-5">
-                        {!! Form::open(['method' => 'POST','id'=>'form-change','route' => ['change_active', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de cambiar el estado del jugador dentro del concurso?')"]) !!}
-                            {!! Form::hidden('active', $view_data['data'][0]->active) !!}
-                            <button type="submit" class="btn btn-primary btn-sm position-relative">
-                                @if ($view_data['data'][0]->active)
-                                    Inactivar
-                                @else
-                                    Activar
-                                @endif
-                            </button>
+                                <button type="submit" class="btn btn-danger btn-sm position-relative">
+                                    Eliminar jugador
+                                </button>
                         {!! Form::close() !!}
-                    </div>
+                            <!-- <a class="btn btn-danger" href="{{route('delete_all', ['sokker_id' => $view_data['data'][0]->sk_player_id])}}">Eliminar jugador</a> -->
+                        </div>
+                        <div class="float-right  mr-5">
+                            {!! Form::open(['method' => 'POST','id'=>'form-change','route' => ['change_active', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de cambiar el estado del jugador dentro del concurso?')"]) !!}
+                                {!! Form::hidden('active', $view_data['data'][0]->active) !!}
+                                <button type="submit" class="btn btn-primary btn-sm position-relative">
+                                    @if ($view_data['data'][0]->active)
+                                        Inactivar
+                                    @else
+                                        Activar
+                                    @endif
+                                </button>
+                            {!! Form::close() !!}
+                        </div>
+                    @endif
+
                 </div>
 
                 <div class="card-body">
@@ -90,11 +92,13 @@
                               <td>{{ \Carbon\Carbon::parse($data->created_at)->toDateString() }}</td>
                               <td>{{ number_format($data->score, 1) }}</td>
                               <td class="d-flex justify-content-around">
+                                @if (\Auth::guard('system_users')->check())
                                 {!! Form::open(['method' => 'DELETE','id'=>'form-delete','route' => ['delete_player', $data->id],'style'=>'display:inline','onclick' => "return confirm('Está seguro de eliminar el registro?')"]) !!}
                                         <button type="submit" class="btn btn-danger btn-sm position-relative">
                                             Eliminar
                                         </button>
                                 {!! Form::close() !!}
+                                @endif
                               </td>
                             </tr>
                         @endforeach
