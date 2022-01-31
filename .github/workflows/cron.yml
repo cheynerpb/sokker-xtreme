@@ -1,13 +1,13 @@
 ​name​: ​cron
- ​on​:
- ​  ​schedule​:
- ​    - ​cron​: ​'​0 9 * * *​'
- ​    - ​cron​: ​'​0 21 * * *​'
- ​jobs​:
- ​  ​cron​:
- ​    ​runs-on​: ​ubuntu-latest
- ​    ​steps​:
- ​      - ​name​: ​Execute cron
- ​        ​run​: ​|
- ​          curl --request GET \
- ​          --url 'http://sokker-xtreme.herokuapp.com/update-xtreme'
+on​:
+​schedule​:
+ - ​cron​: ​'​0 9 * * *​'
+ - ​cron​: ​'​0 21 * * *​'
+​jobs​:
+ cron​:
+ ​runs-on​: ​ubuntu-latest
+ ​steps​:
+  - ​name​: ​Execute cron
+  ​run​: ​|
+  curl --request GET \
+  --url 'http://sokker-xtreme.herokuapp.com/update-xtreme'
