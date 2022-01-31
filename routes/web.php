@@ -64,6 +64,8 @@ Route::group([
     Route::resource('editions', 'EditionController');
     Route::resource('system_users', 'SystemUserController');
 
+    Route::get('logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index']);
+
 });
 
 Route::get('/ranking', 'PlayerUpdateController@show_ranking')->name('show_ranking');
