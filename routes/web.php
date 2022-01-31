@@ -19,6 +19,10 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::get('/update-xtreme', function(){
+    Artisan::call('update:xtreme');
+});
+
 Route::group(['as' => 'system.', 'prefix' => 'system'], function () {
     Route::get('login', 'Auth\SystemUserAuthController@showLoginForm')->name('login.form');
 
