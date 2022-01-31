@@ -9,5 +9,5 @@ jobs:
     steps:
       - name: Execute cron
         run: |
-        curl --request GET \
-        --url 'http://sokker-xtreme.herokuapp.com/update-xtreme'
+          curl --request GET \
+          --url 'http://sokker-xtreme.herokuapp.com/update-xtreme'
