@@ -1,5 +1,5 @@
 ​name​: ​cron
-​  on​:
+​ on​:
  ​  ​schedule​:
  ​    - ​cron​: ​'​0 9 * * *​'
  ​    - ​cron​: ​'​0 21 * * *​'
