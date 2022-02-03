@@ -10,6 +10,9 @@ use DB;
 
 class UpdateXtreme extends Command
 {
+    private $stamina_table;
+    private $pace_table;
+    private $other_table;
     /**
      * The name and signature of the console command.
      *
@@ -32,6 +35,61 @@ class UpdateXtreme extends Command
     public function __construct()
     {
         parent::__construct();
+        $this->stamina_table = array(
+            '1' => 0.1,
+            '2' => 0.2,
+            '3' => 0.3,
+            '4' => 0.4,
+            '5' => 0.5,
+            '6' => 0.6,
+            '7' => 0.7,
+            '8' => 0.8,
+            '9' => 1.0,
+            '10' => 1.2,
+            '11' => 1.5
+        );
+
+        $this->pace_table = array(
+            '1' => 1.4,
+            '2' => 1.7,
+            '3' => 1.9,
+            '4' => 2.2,
+            '5' => 2.4,
+            '6' => 2.6,
+            '7' => 3.0,
+            '8' => 3.4,
+            '9' => 3.7,
+            '10' => 4.1,
+            '11' => 4.6,
+            '12' => 5.0,
+            '13' => 5.5,
+            '14' => 6.0,
+            '15' => 7.2,
+            '16' => 8.4,
+            '17' => 9.6,
+            '18' => 11.5,
+        );
+
+        $this->other_table = array(
+            '1' => 1.2,
+            '2' => 1.4,
+            '3' => 1.6,
+            '4' => 1.8,
+            '5' => 2.0,
+            '6' => 2.2,
+            '7' => 2.5,
+            '8' => 2.8,
+            '9' => 3.1,
+            '10' => 3.4,
+            '11' => 3.8,
+            '12' => 4.2,
+            '13' => 4.6,
+            '14' => 5.0,
+            '15' => 6.0,
+            '16' => 7.0,
+            '17' => 8.0,
+            '18' => 9.5,
+        );
     }
 
     /**
