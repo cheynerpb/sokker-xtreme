@@ -142,4 +142,74 @@ class UpdateXtreme extends Command
             \Log::info($e->getMessage());
         }
     }
+
+    public function calculate_score($last_record, $current_record)
+    {
+        $last_score = $last_record->score;
+
+        if ($current_record->stamina > $last_record->stamina) {
+
+            $existing_stamina = Player::where([
+                'stamina' => $current_record->stamina,
+                'sk_player_id' => $current_record->sk_player_id
+            ])->first();
+
+            if (!$existing_stamina) {
+                for ($i = $last_record->stamina + 1; $i <= $current_record->stamina; $i++) {
+                    $last_score += $this->stamina_table[$i];
+                }
+            }
+        }
+
+        if ($current_record->pace > $last_record->pace) {
+
+            for ($i = $last_record->pace + 1; $i <= $current_record->pace; $i++) {
+                $last_score += $this->pace_table[$i];
+            }
+        }
+        //technique
+        if ($current_record->technique > $last_record->technique) {
+
+            for ($i = $last_record->technique + 1; $i <= $current_record->technique; $i++) {
+                $last_score += $this->other_table[$i];
+            }
+        }
+        //passing
+        if ($current_record->passing > $last_record->passing) {
+
+            for ($i = $last_record->passing + 1; $i <= $current_record->passing; $i++) {
+                $last_score += $this->other_table[$i];
+            }
+        }
+        //keeper
+        if ($current_record->keeper > $last_record->keeper) {
+
+            for ($i = $last_record->keeper + 1; $i <= $current_record->keeper; $i++) {
+                $last_score += $this->other_table[$i];
+            }
+        }
+        //defender
+        if ($current_record->defender > $last_record->defender) {
+
+            for ($i = $last_record->defender + 1; $i <= $current_record->defender; $i++) {
+                $last_score += $this->other_table[$i];
+            }
+        }
+        //playmaker
+        if ($current_record->playmaker > $last_record->playmaker) {
+
+            for ($i = $last_record->playmaker + 1; $i <= $current_record->playmaker; $i++) {
+                $last_score += $this->other_table[$i];
+            }
+        }
+        //striker
+        if ($current_record->striker > $last_record->striker) {
+
+            for ($i = $last_record->striker + 1; $i <= $current_record->striker; $i++) {
+                $last_score += $this->other_table[$i];
+            }
+        }
+
+        return $last_score;
+    }
 }
