@@ -82,10 +82,10 @@
                             @csrf
                         </form>
                     @else
-                        <a href="{{ route('system.login.form') }}">Login</a>
+                        <a href="{{ route('system.login.form') }}">{{ __('Login') }}</a>
 
                         @if (Route::has('system.register.form'))
-                            <a href="{{ route('system.register.form') }}">Register</a>
+                            <a href="{{ route('system.register.form') }}">{{ __('Register') }}</a>
                         @endif
                     @endif
                 </div>
