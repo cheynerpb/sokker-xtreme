@@ -12,6 +12,7 @@
           </thead>
           <tbody>
 
+
             @foreach($view_data['data'] as $key => $data)
                 @php
                     $class = '';
