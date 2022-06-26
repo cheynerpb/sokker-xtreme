@@ -24,6 +24,31 @@
                     @else
                         <span class="badge badge-danger">Inactivo</span>
                     @endif
+                    <div class="float-right">
+                            <form action="http://ntdb.sokker.cz/redir.php" method="post" id="os_ntdb_form" style="display:inline;" target="_blank">
+                                <input name="teamname" type="hidden" value="{{$view_data['lastRecord']->team}}">
+                                <input name="tid" type="hidden" value="">
+                                <input name="playername" type="hidden" value="{{$view_data['lastRecord']->player_name}}">
+                                <input name="countryid" type="hidden" value="97">
+                                <input name="pid" type="hidden" value="{{$view_data['lastRecord']->sk_player_id}}">
+                                <input name="age" type="hidden" value="{{$view_data['lastRecord']->player_age}}">
+                                <input name="val" type="hidden" value="">
+                                <input name="wag" type="hidden" value="">
+                                <input name="frm" type="hidden" value="">
+                                <input name="tac" type="hidden" value="">
+                                <input name="hei" type="hidden" value="">
+                                <input name="sta" type="hidden" value="{{$view_data['lastRecord']->stamina}}">
+                                <input name="kee" type="hidden" value="{{$view_data['lastRecord']->keeper}}">
+                                <input name="pac" type="hidden" value="{{$view_data['lastRecord']->pace}}">
+                                <input name="def" type="hidden" value="{{$view_data['lastRecord']->defender}}">
+                                <input name="tec" type="hidden" value="{{$view_data['lastRecord']->technique}}">
+                                <input name="pla" type="hidden" value="{{$view_data['lastRecord']->playmaker}}">
+                                <input name="pas" type="hidden" value="{{$view_data['lastRecord']->passing}}">
+                                <input name="str" type="hidden" value="{{$view_data['lastRecord']->striker}}">
+                                <input name="langcode" type="hidden" value="es">
+                                <button type="submit" class="btn btn-success" style="display:inline;" alt="">Enviar a DB</button>
+                            </form>
+                    </div>
                     @if (\Auth::guard('system_users')->check())
                         <div class="float-right">
                             {!! Form::open(['method' => 'DELETE','id'=>'form-delete','route' => ['delete_all', $view_data['data'][0]->sk_player_id],'style'=>'display:inline','onclick' => "return confirm('Seguro de eliminar?')"]) !!}

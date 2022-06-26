@@ -689,6 +689,13 @@ class PlayerUpdateController extends Controller
             ->where('contest_id', $contest_id)
             ->orderBy('created_at', 'asc')
             ->get();
+
+        $view_data['lastRecord'] = Player::where('sk_player_id', $sokker_id)
+                                        ->where('contest_id', $contest_id)
+                                        ->orderBy('created_at', 'desc')
+                                        ->first();
+
+
         return view('players.player_details', compact('view_data'))->with(array(
             'message_id' => session('message_id'),
             'error' => session('error'),

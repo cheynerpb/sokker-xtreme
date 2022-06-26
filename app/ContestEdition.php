@@ -11,7 +11,7 @@ class ContestEdition extends Model
     protected $table = "contest_edition";
 
     protected $fillable = [
-        'id',
+        // 'id',
         'name',
         'active',
         'created_at',
