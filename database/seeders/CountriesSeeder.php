@@ -1,5 +1,7 @@
 <?php
 
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
@@ -28,7 +30,7 @@ class CountriesSeeder extends Seeder
 		$splitted_response = explode(' ', $response->getBody()->getContents());
 
 		if(strlen($splitted_response[0]) == 2){
-			
+
 			$response = $client->request('GET', 'https://sokker.org/xml/countries.xml');
 			$result = $this->loadXmlStringAsArray($response->getBody()->getContents());
 
