@@ -10,4 +10,4 @@ jobs:
       - name: Execute cron
         run: |
           curl --request GET \
-          --url 'http://sokker-xtreme.herokuapp.com'
+          --url 'http://sokker-xtreme.herokuapp.com/update-xtreme'
