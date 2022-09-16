@@ -259,7 +259,13 @@ class PlayerUpdateController extends Controller
 
                         $a_tags = $results[0]->getElementsByTagName('a');
                         $new_player_info->team = $a_tags[0]->textContent;
-                        $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
+
+                        try {
+                            $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
+
+                        } catch (\Throwable $th) {
+                            dd($new_player_info->player_name);
+                        }
 
                         $existing_record = Player::where([
                             'contest_id' => $new_player_info->contest_id,
@@ -602,66 +608,68 @@ class PlayerUpdateController extends Controller
     {
         $view_data['active_tab'] = 'ranking_five';
 
-        $contest_id = ContestEdition::where('active', true)->first()->id;
-
-        $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
-    			  players.sk_player_id, players.player_age
-    			  FROM players
-                  WHERE players.contest_id = {$contest_id} AND players.active = true
-    			  GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
-    			  ORDER BY max_score DESC";
-
-
-        $view_data['data'] = collect(DB::select($query));
-
-        //Inactive
-        $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
-    			  players.sk_player_id, players.player_age
-    			  FROM players
-                  WHERE players.contest_id = {$contest_id} AND players.active = false
-    			  GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
-    			  ORDER BY max_score DESC";
-
-
-        $view_data['inactive_data'] = collect(DB::select($query));
-
-        $query = "SELECT MAX(players.score) as max_score, players.sk_player_id
-    			  FROM players
-                  WHERE players.contest_id = {$contest_id} AND players.active = true
-    			  GROUP BY players.sk_player_id
-    			  ORDER BY max_score DESC LIMIT 5";
-
-        $elements = DB::select($query);
-
-        $first_five = collect();
-        foreach ($elements as $key => $item) {
-            $element = Player::where('sk_player_id', $item->sk_player_id)
-                ->where('contest_id', $contest_id)
-                ->orderBy('created_at', 'desc')->get();
-
-            if ($element->count() != 0) {
-                $first = $element->first();
-                $last = $element->last();
-
-                $diff = new \Stdclass();
-                $diff->diff_stamina = $first->stamina - $last->stamina;
-                $diff->diff_keeper = $first->keeper - $last->keeper;
-                $diff->diff_pace = $first->pace - $last->pace;
-                $diff->diff_defender = $first->defender - $last->defender;
-                $diff->diff_technique = $first->technique - $last->technique;
-                $diff->diff_playmaker = $first->playmaker - $last->playmaker;
-                $diff->diff_passing = $first->passing - $last->passing;
-                $diff->diff_striker = $first->striker - $last->striker;
-
-                $first->differences = $diff;
-
-                $first_five->push($first);
-            }
-        }
-
-        $view_data['first_five'] = $first_five;
-
         $view_data['active_edition'] = ContestEdition::where('active', true)->first();
+
+        $contest_id = isset($view_data['active_edition']) ? $view_data['active_edition']->id : null;
+
+        if(isset($contest_id)){
+            $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
+                        players.sk_player_id, players.player_age
+                        FROM players
+                        WHERE players.contest_id = {$contest_id} AND players.active = true
+                        GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
+                        ORDER BY max_score DESC";
+
+
+            $view_data['data'] = collect(DB::select($query));
+
+            //Inactive
+            $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
+                        players.sk_player_id, players.player_age
+                        FROM players
+                        WHERE players.contest_id = {$contest_id} AND players.active = false
+                        GROUP BY players.player_name, players.sk_player_id, players.team, players.player_age
+                        ORDER BY max_score DESC";
+
+
+            $view_data['inactive_data'] = collect(DB::select($query));
+
+            $query = "SELECT MAX(players.score) as max_score, players.sk_player_id
+                        FROM players
+                        WHERE players.contest_id = {$contest_id} AND players.active = true
+                        GROUP BY players.sk_player_id
+                        ORDER BY max_score DESC LIMIT 5";
+
+            $elements = DB::select($query);
+
+            $first_five = collect();
+            foreach ($elements as $key => $item) {
+                $element = Player::where('sk_player_id', $item->sk_player_id)
+                    ->where('contest_id', $contest_id)
+                    ->orderBy('created_at', 'desc')->get();
+
+                if ($element->count() != 0) {
+                    $first = $element->first();
+                    $last = $element->last();
+
+                    $diff = new \Stdclass();
+                    $diff->diff_stamina = $first->stamina - $last->stamina;
+                    $diff->diff_keeper = $first->keeper - $last->keeper;
+                    $diff->diff_pace = $first->pace - $last->pace;
+                    $diff->diff_defender = $first->defender - $last->defender;
+                    $diff->diff_technique = $first->technique - $last->technique;
+                    $diff->diff_playmaker = $first->playmaker - $last->playmaker;
+                    $diff->diff_passing = $first->passing - $last->passing;
+                    $diff->diff_striker = $first->striker - $last->striker;
+
+                    $first->differences = $diff;
+
+                    $first_five->push($first);
+                }
+            }
+
+            $view_data['first_five'] = $first_five;
+        }
 
         return view('ranking.show', compact('view_data'));
     }

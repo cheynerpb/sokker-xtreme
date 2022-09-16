@@ -12,58 +12,72 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header"><h4>{{$view_data['active_edition']->name}}</h4></div>
+                @if(isset($view_data['active_edition']))
+                    <div class="card-header"><h4>{{$view_data['active_edition']->name}}</h4></div>
 
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <p class="ml-3"><strong>Fecha de cierre:</strong>  {{\Carbon\Carbon::now()->toDateString()}}</p>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="ml-3"><strong>Fecha de cierre:</strong>  {{\Carbon\Carbon::now()->toDateString()}}</p>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" disabled class="btn btn-success float-right mr-2" id="top_five">
+                                    Top 5
+                                </button>
+                                <button type="button" class="btn btn-success mr-2 float-right" id="general_table">
+                                    General
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <button type="button" disabled class="btn btn-success float-right mr-2" id="top_five">
-                                Top 5
-                            </button>
-                             <button type="button" class="btn btn-success mr-2 float-right" id="general_table">
-                                General
-                            </button>
+
+                        <div class="tab-content">
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item">
+                                    <a href="#ranking_five"
+                                    data-tab="ranking_five"
+                                    class="nav-link has-no-table {{ $view_data['active_tab'] == "ranking_five" ? "active":"" }}"
+                                    data-toggle="tab"
+                                    >
+                                        Generales
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#five_details"
+                                    data-tab="five_details"
+                                    class="nav-link has-no-table {{ $view_data['active_tab'] == "five_details" ? "active":"" }}"
+                                    data-toggle="tab"
+                                    >
+                                        Detalles
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#inactive"
+                                    data-tab="inactive"
+                                    class="nav-link has-no-table {{ $view_data['active_tab'] == "inactive" ? "active":"" }}"
+                                    data-toggle="tab"
+                                    >
+                                        Inactivos
+                                    </a>
+                                </li>
+                            </ul>
+                            @include('ranking.tabs.ranking_five')
+                            @include('ranking.tabs.five_details')
+                            @include('ranking.tabs.inactive')
+                        </div>
+                    </div>
+                @else
+                    <div class="card-header"><h4>COMPETICION INACTIVA</h4></div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                SE ACTIVARA PROXIMAMENTE
+                            </div>
                         </div>
                     </div>
 
-                    <div class="tab-content">
-                        <ul class="nav nav-tabs">
-                            <li class="nav-item">
-                                <a href="#ranking_five"
-                                  data-tab="ranking_five"
-                                   class="nav-link has-no-table {{ $view_data['active_tab'] == "ranking_five" ? "active":"" }}"
-                                   data-toggle="tab"
-                                >
-                                    Generales
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#five_details"
-                                  data-tab="five_details"
-                                   class="nav-link has-no-table {{ $view_data['active_tab'] == "five_details" ? "active":"" }}"
-                                   data-toggle="tab"
-                                >
-                                    Detalles
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#inactive"
-                                  data-tab="inactive"
-                                   class="nav-link has-no-table {{ $view_data['active_tab'] == "inactive" ? "active":"" }}"
-                                   data-toggle="tab"
-                                >
-                                    Inactivos
-                                </a>
-                            </li>
-                        </ul>
-                        @include('ranking.tabs.ranking_five')
-                        @include('ranking.tabs.five_details')
-                        @include('ranking.tabs.inactive')
-                    </div>
-                </div>
+                @endif
+
                 <div class="card-footer text-muted">
                     <div class="row">
                         <div class="col-md-6">
