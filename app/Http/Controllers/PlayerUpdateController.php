@@ -8,6 +8,7 @@ use App\ContestEdition;
 use DB;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use Http;
 
 class PlayerUpdateController extends Controller
 {
@@ -82,6 +83,85 @@ class PlayerUpdateController extends Controller
             return redirect()->back();
         }
 
+    }
+
+    public function storeByIDApi(Request $request)
+    {
+        try {
+            $active_edition = ContestEdition::where('active', true)->first();
+
+            $client = new Client();
+
+            $response = $client->request('GET', 'https://sokker.org/api/player/' . $request->player_id);
+
+            $data = json_decode((string)$response->getBody());
+
+            if(!isset($data->info->skills->stamina)){
+                return view('players.show')->with(array(
+                    'message_id' => 'El jugador no está en anuncio de transferencia',
+                    'error' => true
+                ));
+            }
+
+            $new_player_info = new Player();
+            $new_player_info->contest_id = $active_edition->id;
+            $new_player_info->sk_player_id = $data->id;
+            $new_player_info->stamina     = $data->info->skills->stamina;
+            $new_player_info->keeper      = $data->info->skills->keeper;
+            $new_player_info->pace         = $data->info->skills->pace;
+            $new_player_info->defender     = $data->info->skills->defending;
+            $new_player_info->technique = $data->info->skills->technique;
+            $new_player_info->playmaker = $data->info->skills->playmaking;
+            $new_player_info->passing     = $data->info->skills->passing;
+            $new_player_info->striker     = $data->info->skills->striker;
+            $new_player_info->player_name = $data->info->name->full;
+            $new_player_info->player_age = $data->info->characteristics->age;
+            $new_player_info->team = $data->info->team->name;
+            $new_player_info->country_id = $data->info->country->code;
+
+            $existing_record = Player::where([
+                'contest_id' => $new_player_info->contest_id,
+                'sk_player_id' => $new_player_info->sk_player_id,
+                'player_name' => $new_player_info->player_name,
+                'player_age' => $new_player_info->player_age,
+                'team' => $new_player_info->team,
+                'stamina' => $new_player_info->stamina,
+                'keeper' => $new_player_info->keeper,
+                'pace' => $new_player_info->pace,
+                'defender' => $new_player_info->defender,
+                'technique' => $new_player_info->technique,
+                'playmaker' => $new_player_info->playmaker,
+                'passing' => $new_player_info->passing,
+                'striker' => $new_player_info->striker,
+                'country_id' => $new_player_info->country_id
+            ])->first();
+
+            if ($existing_record) {
+                return view('players.show')->with(array(
+                    'message_id' => 'Ya existen estos datos para este jugador',
+                    'error' => true
+                ));
+            }
+
+            $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
+                        ->where('contest_id', $active_edition->id)
+                        ->orderBy('created_at', 'desc')->first();
+
+            if (isset($last_player_record)) {
+                $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
+            }
+            $new_player_info->save();
+
+            return view('players.show')->with(array(
+                'message_id' => 'Datos del jugador ' . $new_player_info->player_name . ' insertados correctamente'
+            ));
+
+
+        } catch(Throwable $e) {
+            return view('players.show')->with(array(
+                'message_id' => 'Error ' . $e->getMessage()
+            ));
+        }
     }
 
     public function store_by_id(Request $request)
@@ -203,113 +283,177 @@ class PlayerUpdateController extends Controller
 
             $active_edition = ContestEdition::where('active', true)->first();
 
-            $query = "SELECT DISTINCT sk_player_id FROM players where contest_id = '{$active_edition->id}' AND active = true";
+            if($active_edition) {
+                $query = "SELECT DISTINCT sk_player_id FROM players where contest_id = '{$active_edition->id}' AND active = true";
 
-            $result = DB::select($query);
+                $result = DB::select($query);
 
-            if (count($result) > 0) {
+                if (count($result) > 0) {
 
-                $client = new Client();
-                $count = 0;
-                foreach ($result as $key => $value) {
+                    $client = new Client();
+                    $count = 0;
+                    foreach ($result as $key => $value) {
 
-                    $response = $client->request('GET', 'https://sokker.org/player/PID/' . $value->sk_player_id);
+                        $response = $client->request('GET', 'https://sokker.org/player/PID/' . $value->sk_player_id);
 
-                    $domDoc = new \DOMDocument();
+                        $domDoc = new \DOMDocument();
 
-                    $html = (string)$response->getBody();
+                        $html = (string)$response->getBody();
 
-                    $domHtml = @$domDoc->loadHTML($html);
+                        $domHtml = @$domDoc->loadHTML($html);
 
-                    $xpath = new \DOMXPath($domDoc);
+                        $xpath = new \DOMXPath($domDoc);
 
-                    $results = $xpath->query("//*[@class='skillNameNumber']");
+                        $results = $xpath->query("//*[@class='skillNameNumber']");
 
-                    if ($results->length > 2) {
+                        if ($results->length > 2) {
 
-                        $new_player_info = new Player();
+                            $new_player_info = new Player();
 
-                        $array = ['[', ']'];
+                            $array = ['[', ']'];
 
-                        $new_player_info->contest_id = $active_edition->id;
-                        $new_player_info->sk_player_id = $value->sk_player_id;
-                        $new_player_info->stamina     = str_replace($array, '', $results[2]->nodeValue);
-                        $new_player_info->keeper      = str_replace($array, '', $results[3]->nodeValue);
-                        $new_player_info->pace         = str_replace($array, '', $results[4]->nodeValue);
-                        $new_player_info->defender     = str_replace($array, '', $results[5]->nodeValue);
-                        $new_player_info->technique = str_replace($array, '', $results[6]->nodeValue);
-                        $new_player_info->playmaker = str_replace($array, '', $results[7]->nodeValue);
-                        $new_player_info->passing     = str_replace($array, '', $results[8]->nodeValue);
-                        $new_player_info->striker     = str_replace($array, '', $results[9]->nodeValue);
+                            $new_player_info->contest_id = $active_edition->id;
+                            $new_player_info->sk_player_id = $value->sk_player_id;
+                            $new_player_info->stamina     = str_replace($array, '', $results[2]->nodeValue);
+                            $new_player_info->keeper      = str_replace($array, '', $results[3]->nodeValue);
+                            $new_player_info->pace         = str_replace($array, '', $results[4]->nodeValue);
+                            $new_player_info->defender     = str_replace($array, '', $results[5]->nodeValue);
+                            $new_player_info->technique = str_replace($array, '', $results[6]->nodeValue);
+                            $new_player_info->playmaker = str_replace($array, '', $results[7]->nodeValue);
+                            $new_player_info->passing     = str_replace($array, '', $results[8]->nodeValue);
+                            $new_player_info->striker     = str_replace($array, '', $results[9]->nodeValue);
 
-                        $classname = "panel-heading";
-                        $results = $xpath->query("//*[contains(@class, '$classname')]");
+                            $classname = "panel-heading";
+                            $results = $xpath->query("//*[contains(@class, '$classname')]");
 
-                        //Name
-                        $a_tags = $results[0]->getElementsByTagName('a');
-                        $new_player_info->player_name = trim($a_tags[0]->textContent);
+                            //Name
+                            $a_tags = $results[0]->getElementsByTagName('a');
+                            $new_player_info->player_name = trim($a_tags[0]->textContent);
 
-                        //Age
-                        $age_tag = $results[0]->getElementsByTagName('strong');
-                        $new_player_info->player_age = (int)$age_tag[0]->textContent;
+                            //Age
+                            $age_tag = $results[0]->getElementsByTagName('strong');
+                            $new_player_info->player_age = (int)$age_tag[0]->textContent;
 
-                        //Team and country_id
-                        $classname = "list-unstyled list-underline";
-                        $results = $xpath->query("//*[contains(@class, '$classname')]");
+                            //Team and country_id
+                            $classname = "list-unstyled list-underline";
+                            $results = $xpath->query("//*[contains(@class, '$classname')]");
 
-                        $a_tags = $results[0]->getElementsByTagName('a');
-                        $new_player_info->team = $a_tags[0]->textContent;
+                            $a_tags = $results[0]->getElementsByTagName('a');
+                            $new_player_info->team = $a_tags[0]->textContent;
 
-                        try {
-                            $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
+                            try {
 
-                        } catch (\Throwable $th) {
-                            dd($new_player_info->player_name);
-                        }
+                                $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
 
-                        $existing_record = Player::where([
-                            'contest_id' => $new_player_info->contest_id,
-                            'sk_player_id' => $new_player_info->sk_player_id,
-                            'player_name' => $new_player_info->player_name,
-                            'player_age' => $new_player_info->player_age,
-                            'team' => $new_player_info->team,
-                            'stamina' => $new_player_info->stamina,
-                            'keeper' => $new_player_info->keeper,
-                            'pace' => $new_player_info->pace,
-                            'defender' => $new_player_info->defender,
-                            'technique' => $new_player_info->technique,
-                            'playmaker' => $new_player_info->playmaker,
-                            'passing' => $new_player_info->passing,
-                            'striker' => $new_player_info->striker,
-                            'country_id' => $new_player_info->country_id
-                        ])->first();
-
-                        if (!$existing_record) {
-                            $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
-                                ->where('contest_id', $active_edition->id)
-                                ->orderBy('created_at', 'desc')->first();
-
-                            if (isset($last_player_record)) {
-                                $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
+                            } catch (\Throwable $th) {
+                                dd($new_player_info->player_name);
                             }
-                            $new_player_info->save();
-                            $count++;
+
+                            $existing_record = Player::where([
+                                'contest_id' => $new_player_info->contest_id,
+                                'sk_player_id' => $new_player_info->sk_player_id,
+                                'player_name' => $new_player_info->player_name,
+                                'player_age' => $new_player_info->player_age,
+                                'team' => $new_player_info->team,
+                                'stamina' => $new_player_info->stamina,
+                                'keeper' => $new_player_info->keeper,
+                                'pace' => $new_player_info->pace,
+                                'defender' => $new_player_info->defender,
+                                'technique' => $new_player_info->technique,
+                                'playmaker' => $new_player_info->playmaker,
+                                'passing' => $new_player_info->passing,
+                                'striker' => $new_player_info->striker,
+                                'country_id' => $new_player_info->country_id
+                            ])->first();
+
+                            if (!$existing_record) {
+                                $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
+                                    ->where('contest_id', $active_edition->id)
+                                    ->orderBy('created_at', 'desc')->first();
+
+                                if (isset($last_player_record)) {
+                                    $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
+                                }
+                                $new_player_info->save();
+                                $count++;
+                            }
                         }
                     }
+
+                    $this->updateSokkerCuba($active_edition->id);
+
+                    return view('players.show')->with(array(
+                        'message_id' => 'Actualizados ' . $count . ' jugadores'
+                    ));
                 }
                 return view('players.show')->with(array(
-                    'message_id' => 'Actualizados ' . $count . ' jugadores'
+                    'message_id' => 'No hay jugadores registrados en la Edición ' . $active_edition->name
                 ));
             }
+
             return view('players.show')->with(array(
-                'message_id' => 'No hay jugadores registrados en la Edición ' . $active_edition->name
+                'message_id' => 'No hay una edición activa'
             ));
+
         } catch (Exception $e) {
             dd($e);
             return view('players.show')->with(array(
                 'message_id' => 'Error ' . $e->getMessage()
             ));
         }
+    }
+
+    private function updateSokkerCuba($editionId)
+    {
+        try {
+            $edition = ContestEdition::find($editionId)->with('players')->first();
+
+            if($edition) {
+                $editionName = explode(' ', $edition->name);
+                $editionName =strtolower($editionName[count($editionName) - 1]);
+
+
+                $edition = $edition->toArray();
+                $edition['id'] = $edition['id'] + 1;
+
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                ])->post('https://www.sokkercuba.com/api/v1/xtreme/'.$editionName, $edition);
+
+                $status = $response->status();
+
+                if($status == 200){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            return false;
+
+
+        } catch (\Throwable $th) {
+            dd($th);
+        }
+
+    }
+
+    public function update_sokkercuba(Request $request)
+    {
+        try {
+
+            $response = $this->updateSokkerCuba($request->edition);
+
+            if($response) {
+                return redirect()->route('show_ranking', ['id' => $request->edition]);
+            }
+
+            return back();
+
+        } catch (\Throwable $th) {
+            dd($th);
+        }
+
     }
 
     public function store(Request $request)
@@ -604,13 +748,20 @@ class PlayerUpdateController extends Controller
         return $last_score;
     }
 
-    public function show_ranking()
+    public function show_ranking($id = null)
     {
         $view_data['active_tab'] = 'ranking_five';
 
-        $view_data['active_edition'] = ContestEdition::where('active', true)->first();
+        $view_data['edition'] = ContestEdition::find($id);
 
-        $contest_id = isset($view_data['active_edition']) ? $view_data['active_edition']->id : null;
+        if($view_data['edition']) {
+            $contest_id = $view_data['edition']->id;
+        } else {
+            $view_data['active_edition'] = ContestEdition::where('active', true)->first();
+            $contest_id = isset($view_data['active_edition']) ? $view_data['active_edition']->id : null;
+        }
+
+        $view_data['editions'] = ContestEdition::orderBy('created_at', 'desc')->pluck('name', 'id');
 
         if(isset($contest_id)){
             $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,

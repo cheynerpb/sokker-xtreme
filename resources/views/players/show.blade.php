@@ -15,7 +15,7 @@
                 <div class="card-header">Insertar ID del jugador
                     <div class="float-right">
                         {{ Form::open( ['id' => 'update_all', 'class' => 'form', 'route' => 'update_all'] ) }}
-                            <button class="btn btn-secondary" type="submit">Actualizar todos</a>
+                            <button class="btn btn-secondary" type="submit">Actualizar todos</button>
                         {{ Form::close() }}
                     </div>
                 </div>

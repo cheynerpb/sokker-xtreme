@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\ContestEdition;
 
 /*
 |--------------------------------------------------------------------------
@@ -12,6 +13,16 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('json', function(){
+    try {
+        dd(ContestEdition::with('players')->get()->toArray());
+        $var = file_put_contents('players.json', ContestEdition::where('active', true)->with('players')->get()->toJson());
+        \Illuminate\Support\Facades\Storage::put('players.json', $var);
+    }catch (Throwable $e) {
+        dd($e->getMessage());
+    }
+});
 
 Route::get('/', function () {
     return view('welcome');
@@ -45,8 +56,10 @@ Route::group([
     Route::get('/insert-player', 'PlayerUpdateController@show_insert')->name('insert_player');
 
     Route::post('/send-data', 'PlayerUpdateController@store')->name('store_player');
-    Route::post('/send-id', 'PlayerUpdateController@store_by_id')->name('store_player_by_id');
+    Route::post('/send-id', 'PlayerUpdateController@storeByIDApi')->name('store_player_by_id');
     Route::post('/send-all', 'PlayerUpdateController@update_all')->name('update_all');
+
+    Route::post('/send-sokkercuba', 'PlayerUpdateController@update_sokkercuba')->name('update_sokkercuba');
 
     Route::delete('/delete-player/{id}', 'PlayerUpdateController@destroy')->name('delete_player');
     Route::delete('/delete-all/{sokker_id}', 'PlayerUpdateController@delete_all')->name('delete_all');
@@ -68,7 +81,7 @@ Route::group([
 
 });
 
-Route::get('/ranking', 'PlayerUpdateController@show_ranking')->name('show_ranking');
+Route::get('/ranking/{id?}', 'PlayerUpdateController@show_ranking')->name('show_ranking');
 
 Route::get('/show-player/{sokker_id}', 'PlayerUpdateController@show_player')->name('show_player');
 Route::get('/reference-table', 'PlayerUpdateController@reference_table')->name('reference_table');

@@ -23,6 +23,7 @@
                         <thead>
                             <th>Nombre</th>
                             <th>Ganador</th>
+                            <th>Equipo</th>
                             <th>Activa</th>
                             <th>Fecha de creación</th>
                             <th class="text-center">Opciones</th>
@@ -32,6 +33,7 @@
                             <tr>
                                 <td>{{$item->name}}</td>
                                 <td>{{$item->winner}}</td>
+                                <td>{{$item->team}}</td>
 
                                 <td>{!!$item->active==1?'<span class="badge badge-primary">Activa</span>':'<span class="badge badge-danger">Inactiva</span>'!!}</td>
                                 <td>{{\Carbon\Carbon::parse($item->created_at)->toDateString()}}</td>

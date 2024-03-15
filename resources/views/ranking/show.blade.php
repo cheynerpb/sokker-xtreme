@@ -11,9 +11,31 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
+
+            {{ Form::select('edition', $view_data['editions'], $view_data['active_edition']->id ?? $view_data['edition']->id ?? null, [ 'class' => 'form-control select2 mb-2']) }}
+
             <div class="card">
-                @if(isset($view_data['active_edition']))
-                    <div class="card-header"><h4>{{$view_data['active_edition']->name}}</h4></div>
+
+                @if(isset($view_data['active_edition']) || isset($view_data['edition']))
+                    <div class="card-header row">
+                        <div class="col-6"><h4>{{$view_data['active_edition']->name ?? $view_data['edition']->name}}</h4></div>
+                        @if (\Auth::guard('system_users')->check() && isset($view_data['active_edition']))
+                            <div class="col-3">
+                                {{ Form::open( ['id' => 'update_all', 'class' => 'form float-right', 'route' => 'update_all'] ) }}
+                                    <button class="btn btn-secondary" type="submit">Actualizar todos</button>
+                                {{ Form::close() }}
+                            </div>
+                        @endif
+
+                        @if (\Auth::guard('system_users')->check())
+                            <div class="col-3">
+                                {{ Form::open( ['id' => 'update_sokkercuba', 'class' => 'form ', 'route' => 'update_sokkercuba'] ) }}
+                                    {!! Form::hidden('edition', $view_data['active_edition']->id ?? $view_data['edition']->id) !!}
+                                    <button class="btn btn-secondary" type="submit">Actualizar SokkerCuba</button>
+                                {{ Form::close() }}
+                            </div>
+                        @endif
+                    </div>
 
                     <div class="card-body">
                         <div class="row">
@@ -75,7 +97,6 @@
                             </div>
                         </div>
                     </div>
-
                 @endif
 
                 <div class="card-footer text-muted">
@@ -114,6 +135,13 @@
                 $('#top_five').prop('disabled', true);
                 $('#general_table').prop('disabled', true);
             }
+        })
+
+        $('select[name="edition"]').on('change', function(){
+            let edition = $(this).val();
+            let url = '{{ route("show_ranking", ":id") }}';
+            url = url.replace(':id', edition);
+            window.location.replace(url);
         })
 
         /*$('#save_table').on('click', function(){
