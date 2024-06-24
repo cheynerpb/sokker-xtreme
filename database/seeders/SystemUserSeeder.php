@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 use App\SystemUser;
 
@@ -18,7 +19,7 @@ class SystemUserSeeder extends Seeder
         SystemUser::create([
             'name' => 'Administrador',
             'email' => 'cheynerpb@gmail.com',
-            'password' => '$2y$10$DNg6fKRaNJu7SDbe0tpuReNf6ZM5hRMSwUx57yhYNswqde883Y4mS',
+            'password' => Hash::make('123456789'),
             'active' => true
         ]);
     }

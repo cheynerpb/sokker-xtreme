@@ -6,6 +6,8 @@ use Illuminate\Database\Seeder;
 
 use App\ContestEdition;
 use App\Player;
+use DB;
+use Schema;
 
 class DataToPostgre extends Seeder
 {
@@ -16,14 +18,15 @@ class DataToPostgre extends Seeder
      */
     public function run()
     {
-        $contest_editions = DB::connection('mysql')->table('contest_edition')
+        $contest_editions = DB::connection('pgsql')->table('contest_edition')
                     ->select()->get();
 
         Schema::disableForeignKeyConstraints();
         ContestEdition::truncate();
-        Schema::enableForeignKeyConstraints();
+
 
         foreach ($contest_editions as $key => $contest_edition) {
+
             ContestEdition::create([
                 'id' => $contest_edition->id,
                 'name' => $contest_edition->name,
@@ -31,13 +34,15 @@ class DataToPostgre extends Seeder
                 'created_at' => $contest_edition->created_at,
                 'updated_at' => $contest_edition->updated_at,
             ]);
+
         }
+
+        Schema::enableForeignKeyConstraints();
 
         Schema::disableForeignKeyConstraints();
         Player::truncate();
-        Schema::enableForeignKeyConstraints();
 
-        $players = DB::connection('mysql')->table('players')
+        $players = DB::connection('pgsql')->table('players')
                     ->select()->get();
 
         foreach ($players as $key => $player) {
@@ -62,5 +67,7 @@ class DataToPostgre extends Seeder
                 'updated_at' => $player->updated_at
             ]);
         }
+
+        Schema::enableForeignKeyConstraints();
     }
 }

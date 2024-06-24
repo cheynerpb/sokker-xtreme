@@ -81,10 +81,20 @@
                                         Inactivos
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="#by_team"
+                                    data-tab="by_team"
+                                    class="nav-link has-no-table {{ $view_data['active_tab'] == "by_team" ? "active":"" }}"
+                                    data-toggle="tab"
+                                    >
+                                        Cantidad por Equipos
+                                    </a>
+                                </li>
                             </ul>
                             @include('ranking.tabs.ranking_five')
                             @include('ranking.tabs.five_details')
                             @include('ranking.tabs.inactive')
+                            @include('ranking.tabs.by_team')
                         </div>
                     </div>
                 @else

@@ -92,7 +92,9 @@ class PlayerUpdateController extends Controller
 
             $client = new Client();
 
-            $response = $client->request('GET', 'https://sokker.org/api/player/' . $request->player_id);
+            $exploded = explode('/', $request->player_id);
+
+            $response = $client->request('GET', 'https://sokker.org/api/player/' . $exploded[count($exploded) - 1]);
 
             $data = json_decode((string)$response->getBody());
 
@@ -380,7 +382,7 @@ class PlayerUpdateController extends Controller
                         }
                     }
 
-                    $this->updateSokkerCuba($active_edition->id);
+                    //$this->updateSokkerCuba($active_edition->id);
 
                     return view('players.show')->with(array(
                         'message_id' => 'Actualizados ' . $count . ' jugadores'
@@ -406,7 +408,8 @@ class PlayerUpdateController extends Controller
     private function updateSokkerCuba($editionId)
     {
         try {
-            $edition = ContestEdition::find($editionId)->with('players')->first();
+
+            $edition = ContestEdition::where('id', $editionId)->with('players')->first();
 
             if($edition) {
                 $editionName = explode(' ', $edition->name);
@@ -418,7 +421,9 @@ class PlayerUpdateController extends Controller
 
                 $response = Http::withHeaders([
                     'Content-Type' => 'application/json',
-                ])->post('https://www.sokkercuba.com/api/v1/xtreme/'.$editionName, $edition);
+                ])->withOptions([
+                    'verify' => false, // This option disables SSL certificate verification
+                ])->post('https://fantastic-shirt-moth.cyclic.app/api/v1/xtreme/'.$editionName, $edition);
 
                 $status = $response->status();
 
@@ -441,7 +446,6 @@ class PlayerUpdateController extends Controller
     public function update_sokkercuba(Request $request)
     {
         try {
-
             $response = $this->updateSokkerCuba($request->edition);
 
             if($response) {
@@ -784,6 +788,16 @@ class PlayerUpdateController extends Controller
 
 
             $view_data['inactive_data'] = collect(DB::select($query));
+
+            //By Team
+
+           $query = "SELECT COUNT(DISTINCT players.sk_player_id) as count_player, players.team
+                        FROM players
+                        WHERE players.contest_id = {$contest_id} AND players.active = true
+                        GROUP BY players.team
+                        ORDER BY count_player DESC";
+
+            $view_data['groupByTeam'] = collect(DB::select($query));
 
             $query = "SELECT MAX(players.score) as max_score, players.sk_player_id
                         FROM players
