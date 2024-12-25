@@ -57,6 +57,7 @@ Route::group([
 
     Route::post('/send-data', 'PlayerUpdateController@store')->name('store_player');
     Route::post('/send-id', 'PlayerUpdateController@storeByIDApi')->name('store_player_by_id');
+    Route::post('/send-manually', 'PlayerUpdateController@storePlayerManually')->name('store_player_manually');
     Route::post('/send-all', 'PlayerUpdateController@update_all')->name('update_all');
 
     Route::post('/send-sokkercuba', 'PlayerUpdateController@update_sokkercuba')->name('update_sokkercuba');

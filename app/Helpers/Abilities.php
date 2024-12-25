@@ -1,13 +1,13 @@
 <?php
 namespace App\Helpers;
-  
-use Illuminate\Support\Facades\DB;
-  
-class Abilities {
- 
-    public static function getAbility($ability_number) {
 
-        $abilities_array = array(
+use Illuminate\Support\Facades\DB;
+
+class Abilities {
+
+    public static function allAbilities()
+    {
+       return array(
             0 => 'trágico',
             1 => 'terrible',
             2 => 'deficiente',
@@ -27,9 +27,11 @@ class Abilities {
             16 => 'sobrenatural',
             17 => 'divino',
             18 => 'superdivino',
-
         );
- 
-        return $abilities_array[$ability_number];
+    }
+
+    public static function getAbility($ability_number)
+    {
+        return self::allAbilities()[$ability_number];
     }
 }

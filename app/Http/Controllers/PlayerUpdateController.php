@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Player;
 use App\ContestEdition;
+use App\Country;
 use DB;
 use GuzzleHttp\Client;
-use GuzzleHttp\Cookie\CookieJar;
 use Http;
+use Auth;
 
 class PlayerUpdateController extends Controller
 {
@@ -77,12 +78,11 @@ class PlayerUpdateController extends Controller
 
     public function show_insert()
     {
-        if(\Auth::guard('system_users')->check()){
-            return view('players.show');
+        if (Auth::guard('system_users')->check()) {
+            return view('players.show', compact('abilities'));
         } else {
             return redirect()->back();
         }
-
     }
 
     public function storeByIDApi(Request $request)
@@ -98,7 +98,7 @@ class PlayerUpdateController extends Controller
 
             $data = json_decode((string)$response->getBody());
 
-            if(!isset($data->info->skills->stamina)){
+            if (!isset($data->info->skills->stamina)) {
                 return view('players.show')->with(array(
                     'message_id' => 'El jugador no está en anuncio de transferencia',
                     'error' => true
@@ -146,8 +146,8 @@ class PlayerUpdateController extends Controller
             }
 
             $last_player_record = Player::where('sk_player_id', $new_player_info->sk_player_id)
-                        ->where('contest_id', $active_edition->id)
-                        ->orderBy('created_at', 'desc')->first();
+                ->where('contest_id', $active_edition->id)
+                ->orderBy('created_at', 'desc')->first();
 
             if (isset($last_player_record)) {
                 $new_player_info->score = $this->calculate_score($last_player_record, $new_player_info);
@@ -157,13 +157,78 @@ class PlayerUpdateController extends Controller
             return view('players.show')->with(array(
                 'message_id' => 'Datos del jugador ' . $new_player_info->player_name . ' insertados correctamente'
             ));
-
-
-        } catch(Throwable $e) {
+        } catch (Throwable $e) {
             return view('players.show')->with(array(
                 'message_id' => 'Error ' . $e->getMessage()
             ));
         }
+    }
+
+    public function storePlayerManually(Request $request)
+    {
+        try {
+            $rules = [
+                'player_name' => ['required'],
+                'player_age' => ['required', 'integer'],
+                'sk_player_id' => ['required', 'integer'],
+                'team' => ['required'],
+                'stamina' => ['required'],
+                'keeper' => ['required'],
+                'pace' => ['required'],
+                'defender' => ['required'],
+                'technique' => ['required'],
+                'playmaker' => ['required'],
+                'passing' => ['required'],
+                'striker' => ['required']
+            ];
+            $request->validate($rules);
+
+            $country = Country::where('name', 'Cuba')->first();
+
+            if ( $country && $active_edition = ContestEdition::where('active', true)->first()) {
+
+                $newPlayer = Player::where('sk_player_id', $request->sk_player_id)->where('contest_id', $active_edition->id)->first();
+
+                if($newPlayer) {
+                    return view('players.show')->with(array(
+                        'message_id' => 'Ya existen estos datos para este jugador',
+                        'error' => true
+                    ));
+                }
+
+                $newPlayer = Player::create([
+                    'contest_id' => $active_edition->id,
+                    'sk_player_id' => $request->sk_player_id,
+                    'player_name' => $request->player_name,
+                    'player_age' => $request->player_age,
+                    'stamina' => $request->stamina,
+                    'keeper' => $request->keeper,
+                    'pace' => $request->pace,
+                    'defender' => $request->defender,
+                    'technique' => $request->technique,
+                    'playmaker' => $request->playmaker,
+                    'passing' => $request->passing,
+                    'striker' => $request->striker,
+                    'team' => $request->team,
+                    'country_id' => $country->id
+                ]);
+
+                return view('players.show')->with(array(
+                    'message_id' => 'Datos del jugador ' . $newPlayer->player_name . ' insertados correctamente'
+                ));
+            }
+
+            return view('players.show')->with(array(
+                'message_id' => 'Revise los datos, Cuba no está registrada',
+                'error' => true
+            ));
+        } catch (Throwable $e) {
+            dd($e);
+            return view('players.show')->with(array(
+                'message_id' => 'Error ' . $e->getMessage()
+            ));
+        }
+
     }
 
     public function store_by_id(Request $request)
@@ -285,7 +350,7 @@ class PlayerUpdateController extends Controller
 
             $active_edition = ContestEdition::where('active', true)->first();
 
-            if($active_edition) {
+            if ($active_edition) {
                 $query = "SELECT DISTINCT sk_player_id FROM players where contest_id = '{$active_edition->id}' AND active = true";
 
                 $result = DB::select($query);
@@ -346,7 +411,6 @@ class PlayerUpdateController extends Controller
                             try {
 
                                 $new_player_info->country_id = (int) filter_var($a_tags[1]->getAttribute('href'), FILTER_SANITIZE_NUMBER_INT);
-
                             } catch (\Throwable $th) {
                                 dd($new_player_info->player_name);
                             }
@@ -396,7 +460,6 @@ class PlayerUpdateController extends Controller
             return view('players.show')->with(array(
                 'message_id' => 'No hay una edición activa'
             ));
-
         } catch (Exception $e) {
             dd($e);
             return view('players.show')->with(array(
@@ -411,9 +474,9 @@ class PlayerUpdateController extends Controller
 
             $edition = ContestEdition::where('id', $editionId)->with('players')->first();
 
-            if($edition) {
+            if ($edition) {
                 $editionName = explode(' ', $edition->name);
-                $editionName =strtolower($editionName[count($editionName) - 1]);
+                $editionName = strtolower($editionName[count($editionName) - 1]);
 
 
                 $edition = $edition->toArray();
@@ -423,11 +486,11 @@ class PlayerUpdateController extends Controller
                     'Content-Type' => 'application/json',
                 ])->withOptions([
                     'verify' => false, // This option disables SSL certificate verification
-                ])->post('https://fantastic-shirt-moth.cyclic.app/api/v1/xtreme/'.$editionName, $edition);
+                ])->post('https://fantastic-shirt-moth.cyclic.app/api/v1/xtreme/' . $editionName, $edition);
 
                 $status = $response->status();
 
-                if($status == 200){
+                if ($status == 200) {
                     return true;
                 } else {
                     return false;
@@ -435,12 +498,9 @@ class PlayerUpdateController extends Controller
             }
 
             return false;
-
-
         } catch (\Throwable $th) {
             dd($th);
         }
-
     }
 
     public function update_sokkercuba(Request $request)
@@ -448,16 +508,14 @@ class PlayerUpdateController extends Controller
         try {
             $response = $this->updateSokkerCuba($request->edition);
 
-            if($response) {
+            if ($response) {
                 return redirect()->route('show_ranking', ['id' => $request->edition]);
             }
 
             return back();
-
         } catch (\Throwable $th) {
             dd($th);
         }
-
     }
 
     public function store(Request $request)
@@ -758,7 +816,7 @@ class PlayerUpdateController extends Controller
 
         $view_data['edition'] = ContestEdition::find($id);
 
-        if($view_data['edition']) {
+        if ($view_data['edition']) {
             $contest_id = $view_data['edition']->id;
         } else {
             $view_data['active_edition'] = ContestEdition::where('active', true)->first();
@@ -767,7 +825,7 @@ class PlayerUpdateController extends Controller
 
         $view_data['editions'] = ContestEdition::orderBy('created_at', 'desc')->pluck('name', 'id');
 
-        if(isset($contest_id)){
+        if (isset($contest_id)) {
             $query = "SELECT MAX(players.score) as max_score, players.player_name, players.team,
                         players.sk_player_id, players.player_age
                         FROM players
@@ -791,7 +849,7 @@ class PlayerUpdateController extends Controller
 
             //By Team
 
-           $query = "SELECT COUNT(DISTINCT players.sk_player_id) as count_player, players.team
+            $query = "SELECT COUNT(DISTINCT players.sk_player_id) as count_player, players.team
                         FROM players
                         WHERE players.contest_id = {$contest_id} AND players.active = true
                         GROUP BY players.team
@@ -864,9 +922,9 @@ class PlayerUpdateController extends Controller
             ->get();
 
         $view_data['lastRecord'] = Player::where('sk_player_id', $sokker_id)
-                                        ->where('contest_id', $contest_id)
-                                        ->orderBy('created_at', 'desc')
-                                        ->first();
+            ->where('contest_id', $contest_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
 
 
         return view('players.player_details', compact('view_data'))->with(array(
@@ -905,13 +963,13 @@ class PlayerUpdateController extends Controller
             $player_name = Player::where('sk_player_id', $sk_id)->first();
 
             Player::where('sk_player_id', $sk_id)
-                  ->where('contest_id', $contest_id)
-                  ->update(['active' => !$request->active]);
+                ->where('contest_id', $contest_id)
+                ->update(['active' => !$request->active]);
 
             $status = $request->active == 1 ? 'inactivado' : 'activado';
 
             return redirect()->route('show_player', $player_name->sk_player_id)->with(array(
-                'message_id' => 'El jugador ' . $player_name->player_name . ' fue '.$status,
+                'message_id' => 'El jugador ' . $player_name->player_name . ' fue ' . $status,
                 'error' => false
             ));
         } catch (\Exception $e) {
