@@ -1,0 +1,17 @@
+.git
+.github
+.idea
+.vscode
+.qodo
+.vercel
+node_modules
+vendor
+.env
+.env.*
+!.env.example
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+*.sql
+.DS_Store

@@ -3,11 +3,15 @@ on:
   schedule:
     - cron:  '0 9 * * *'
     - cron:  '0 21 * * *'
+  workflow_dispatch: {}
 jobs:
   cron:
     runs-on: ubuntu-latest
     steps:
       - name: Execute cron
+        env:
+          APP_URL: ${{ secrets.APP_URL }}   # p.ej. https://sokker-xtreme.onrender.com
         run: |
-          curl --request GET \
-          --url 'http://sokker-xtreme.herokuapp.com/update-xtreme'
+          # Render free duerme tras 15 min: primero despertarlo, luego ejecutar
+          curl -s -o /dev/null --max-time 120 --retry 3 --retry-delay 20 "$APP_URL/" || true
+          curl --fail --max-time 300 --retry 2 --retry-delay 30 "$APP_URL/update-xtreme"

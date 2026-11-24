@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: sokker-xtreme
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: APP_NAME
+        value: Xtreme-Doping
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false        # pega tu APP_KEY del .env local
+      - key: APP_URL
+        sync: false        # https://<tu-servicio>.onrender.com
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: CACHE_DRIVER
+        value: file
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false        # aws-0-<region>.pooler.supabase.com
+      - key: DB_PORT
+        value: "5432"      # Session pooler
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        sync: false        # postgres.<project-ref>
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
