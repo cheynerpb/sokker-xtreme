@@ -157,7 +157,7 @@ class PlayerUpdateController extends Controller
             return view('players.show')->with(array(
                 'message_id' => 'Datos del jugador ' . $new_player_info->player_name . ' insertados correctamente'
             ));
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             return view('players.show')->with(array(
                 'message_id' => 'Error ' . $e->getMessage()
             ));
@@ -222,8 +222,8 @@ class PlayerUpdateController extends Controller
                 'message_id' => 'Revise los datos, Cuba no está registrada',
                 'error' => true
             ));
-        } catch (Throwable $e) {
-            dd($e);
+        } catch (\Throwable $e) {
+            \Log::error($e);
             return view('players.show')->with(array(
                 'message_id' => 'Error ' . $e->getMessage()
             ));
@@ -337,7 +337,7 @@ class PlayerUpdateController extends Controller
                 'message_id' => 'No existe el jugador',
                 'error' => true
             ));
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             return view('players.show')->with(array(
                 'message_id' => 'Error ' . $e->getMessage()
             ));
@@ -359,9 +359,16 @@ class PlayerUpdateController extends Controller
 
                     $client = new Client();
                     $count = 0;
+                    $failed = [];
                     foreach ($result as $key => $value) {
 
-                        $response = $client->request('GET', 'https://sokker.org/api/player/' . $value->sk_player_id);
+                        try {
+                            $response = $client->request('GET', 'https://sokker.org/api/player/' . $value->sk_player_id);
+                        } catch (\Throwable $e) {
+                            \Log::warning('Sokker API fallo para ' . $value->sk_player_id . ': ' . $e->getMessage());
+                            $failed[] = $value->sk_player_id;
+                            continue;
+                        }
 
                         $data = json_decode((string)$response->getBody());
 
@@ -419,6 +426,7 @@ class PlayerUpdateController extends Controller
 
                     return view('players.show')->with(array(
                         'message_id' => 'Actualizados ' . $count . ' jugadores'
+                            . (count($failed) ? '. No se pudieron consultar ' . count($failed) . ' jugadores en Sokker (ver logs).' : '')
                     ));
                 }
                 return view('players.show')->with(array(
@@ -429,8 +437,8 @@ class PlayerUpdateController extends Controller
             return view('players.show')->with(array(
                 'message_id' => 'No hay una edición activa'
             ));
-        } catch (Exception $e) {
-            dd($e);
+        } catch (\Throwable $e) {
+            \Log::error($e);
             return view('players.show')->with(array(
                 'message_id' => 'Error ' . $e->getMessage()
             ));
@@ -701,8 +709,8 @@ class PlayerUpdateController extends Controller
             return view('players.show')->with(array(
                 'message' => 'Datos del jugador ' . $new_player_info->player_name . ' insertados correctamente'
             ));
-        } catch (Exception $e) {
-            dd($e);
+        } catch (\Throwable $e) {
+            \Log::error($e);
             return view('players.show')->with(array(
                 'message' => 'Error ' . $e->getMessage()
             ));
@@ -875,7 +883,7 @@ class PlayerUpdateController extends Controller
             return redirect()->route('show_player', $sk_id)->with(array(
                 'message' => 'Registro eliminado correctamente'
             ));
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(array(
                 'message' => 'No se pudo eliminar el registro'
             ));
@@ -918,7 +926,7 @@ class PlayerUpdateController extends Controller
             return redirect()->route('show_ranking')->with(array(
                 'message' => 'Los registros del jugador ' . $player_name->player_name . ' fueron eliminados'
             ));
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(array(
                 'message' => 'Hubo un error al eliminar los datos'
             ));
